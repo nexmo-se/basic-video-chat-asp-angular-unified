@@ -15,7 +15,7 @@ export class VideoComponent implements AfterViewInit, OnInit {
   session: OT.Session;
   publisher: OT.Publisher;
   publishing;
-  apiKey: string;
+  appId: string;
   token: string;
   sessionId: string;
 
@@ -25,10 +25,10 @@ export class VideoComponent implements AfterViewInit, OnInit {
     private router: Router
   ) { }
   ngOnInit(): void {
-    if (!this.stateService.apiKey$ || !this.stateService.token$ || !this.stateService.sessionId$) {
+    if (!this.stateService.appId$ || !this.stateService.token$ || !this.stateService.sessionId$) {
       this.router.navigate(['/']);
     }
-    this.apiKey = this.stateService.apiKey$;
+    this.appId = this.stateService.appId$;
     this.token = this.stateService.token$;
     this.sessionId = this.stateService.sessionId$;
   }
@@ -62,7 +62,7 @@ export class VideoComponent implements AfterViewInit, OnInit {
         width: "100%",
         insertMode: 'append'
       });
-    this.session = OT.initSession(this.apiKey, this.sessionId);
+    this.session = OT.initSession(this.appId, this.sessionId);
     this.session.connect(this.token, (err) => {
       if (err) {
         console.log(err);

@@ -24,7 +24,7 @@ export class JoinComponent {
       (res) => {
         this.stateService.token$ = res['token'];
         this.stateService.sessionId$ = res['sessionId'];
-        this.stateService.apiKey$ = res['apiKey'];
+        this.stateService.appId = res['appId'];
         this.router.navigate(['/video'])
 
       }

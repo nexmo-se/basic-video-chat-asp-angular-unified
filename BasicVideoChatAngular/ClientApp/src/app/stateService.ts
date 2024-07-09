@@ -4,6 +4,6 @@ import { Injectable } from "@angular/core";
 export class StateService {
   public token$: string;
   public sessionId$: string;
-  public apiKey$: string;
+  public appId: string;
   constructor() { }
 }

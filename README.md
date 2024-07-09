@@ -1,3 +1,8 @@
+# Disclaimer Note
+A fork from https://github.com/opentok-community/basic-video-chat-angular
+Updated to use New Vonage Unified Video
+There might be bugs as the changes were extracted from a bigger project. If you find any, contact me
+
 # Basic Video Chat Angular
 
 This is a basic video chat example using .NET and Angular.

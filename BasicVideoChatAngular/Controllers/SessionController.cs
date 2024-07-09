@@ -1,6 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
-using OpenTokSDK;
+using Vonage;
+using Vonage.Request;
+using Vonage.Video.Sessions.CreateSession;
+using Vonage.Video.Authentication;
+using System.Threading.Tasks;
 using System.Linq;
 
 namespace BasicVideoChatAngular.Controllers
@@ -8,10 +12,13 @@ namespace BasicVideoChatAngular.Controllers
     public class SessionController : Controller
     {
         private IConfiguration _Configuration;
+        VonageClient client;
+        Credentials creds;
 
         public SessionController(IConfiguration config)
         {
             _Configuration = config;
+            creds = Credentials.FromAppIdAndPrivateKeyPath(_Configuration["ApiId"], _Configuration["PrivateKeyPath"]);
         }
 
         public class RoomForm
@@ -20,11 +27,8 @@ namespace BasicVideoChatAngular.Controllers
         }
 
         [HttpPost]
-        public IActionResult GetSession([FromBody]RoomForm roomForm)
+        public async Task<IActionResult> GetSession([FromBody]RoomForm roomForm)
         {
-            var apiKey = int.Parse(_Configuration["ApiKey"]);
-            var apiSecret = _Configuration["ApiSecret"];
-            var opentok = new OpenTok(apiKey, apiSecret);
             var roomName = roomForm.RoomName;
             string sessionId;
             string token;
@@ -34,15 +38,34 @@ namespace BasicVideoChatAngular.Controllers
                 if (room != null)
                 {
                     sessionId = room.SessionId;
-                    token = opentok.GenerateToken(sessionId);
+
+                    VideoTokenGenerator tokenGenerator = new VideoTokenGenerator();
+                    var tokenres = tokenGenerator.GenerateToken(creds, TokenAdditionalClaims.Parse(sessionId));
+                    token = tokenres.GetSuccessUnsafe().Token;
                     room.Token = token;
                     db.SaveChanges();
                 }
                 else
                 {
-                    var session = opentok.CreateSession();
-                    sessionId = session.Id;
-                    token = opentok.GenerateToken(sessionId);
+   
+                    var request = CreateSessionRequest.Default;
+
+                    var response = await client.VideoClient.SessionClient.CreateSessionAsync(request);
+
+                    if (response.IsSuccess)
+                    {
+                        sessionId = response.GetSuccessUnsafe().SessionId;
+                    }
+                    else
+                    {
+                        return BadRequest("Error");
+                    }
+
+                    //New way to generate token
+                    VideoTokenGenerator tokenGenerator = new VideoTokenGenerator();
+                    var tokenres = tokenGenerator.GenerateToken(creds, TokenAdditionalClaims.Parse(sessionId));
+
+                    token = tokenres.GetSuccessUnsafe().Token;
                     var roomInsert = new Room
                     {
                         SessionId = sessionId,
@@ -53,9 +76,7 @@ namespace BasicVideoChatAngular.Controllers
                     db.SaveChanges();
                 }
             }
-
-            return Json(new { sessionId = sessionId, token = token, apiKey = _Configuration["ApiKey"] });
-
+            return Json(new { sessionId = sessionId, token = token, appId = _Configuration["AppId"] });
         }
     }
 }
