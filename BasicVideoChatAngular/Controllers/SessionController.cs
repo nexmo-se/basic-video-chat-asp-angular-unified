@@ -38,7 +38,8 @@ namespace BasicVideoChatAngular.Controllers
                 if (room != null)
                 {
                     sessionId = room.SessionId;
-
+                    
+                    //New way to generate token
                     VideoTokenGenerator tokenGenerator = new VideoTokenGenerator();
                     var tokenres = tokenGenerator.GenerateToken(creds, TokenAdditionalClaims.Parse(sessionId));
                     token = tokenres.GetSuccessUnsafe().Token;
